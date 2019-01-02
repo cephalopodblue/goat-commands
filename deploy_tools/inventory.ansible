@@ -1,0 +1,8 @@
+[live]
+goat.probableseagull.com ansible_become=yes ansible_ssh_user=heather
+
+[staging]
+goat-staging.probableseagull.com ansible_become=yes ansible_ssh_user=heather
+
+[local]
+localhost ansible_ssh_user=root ansible_ssh_port=6666 ansible_host=127.0.0.1
