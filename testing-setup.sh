@@ -6,3 +6,4 @@ then
 fi
 
 ./virtualenv/bin/pip install -r requirements.txt
+./virtualenv/bin/pip install -r test_requirements.txt
