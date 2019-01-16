@@ -7,3 +7,9 @@ unit_tests:
         - ./virtualenv/bin/python manage.py test accounts lists
     tags:
         - goats
+
+functional_tests:
+    script:
+        - ./virtualenv/bin/python manage.py test functional_tests
+    tags:
+        - goats
