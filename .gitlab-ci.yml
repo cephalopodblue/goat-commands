@@ -4,6 +4,6 @@ before_script:
 
 unit_tests:
     script:
-        - python manage.py test accounts list
+        - ./virtualenv/bin/python manage.py test accounts list
     tags:
         - goats
