@@ -10,6 +10,6 @@ unit_tests:
 
 functional_tests:
     script:
-        - ./virtualenv/bin/python manage.py test functional_tests
+        - xvfb-run ./virtualenv/bin/python manage.py test functional_tests
     tags:
         - goats
