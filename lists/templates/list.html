@@ -11,3 +11,9 @@
 		{% endfor %}
 	</table>
 {% endblock %}
+
+{% block extra_content %}
+	<form method="POST" action="share">
+		<input name="sharee" />
+	</form>
+{% endblock %}

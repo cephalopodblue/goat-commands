@@ -19,7 +19,7 @@ from unittest.mock import patch, Mock
 class HomePageTest(TestCase):
 
     def test_home_page_returns_correct_html(self):
-        response = self.client.get('/') 
+        response = self.client.get('/')
         self.assertTemplateUsed(response, 'home.html')
 
     def test_home_page_uses_item_form(self):
@@ -28,7 +28,7 @@ class HomePageTest(TestCase):
 
 
 class NewListViewIntegratedTest(TestCase):
-    
+
     def test_can_save_a_POST_request(self):
         self.client.post('/lists/new', data={'text': 'A new list item'})
         self.assertEqual(Item.objects.count(), 1)
@@ -107,7 +107,7 @@ class ListViewTest(TestCase):
             f'/lists/{list_.id}/',
             data={'text': ''}
         )
-        
+
     def test_for_invalid_input_nothing_saved_to_db(self):
         response = self.post_invalid_input()
         self.assertEqual(Item.objects.count(), 0)
@@ -208,3 +208,15 @@ class NewListViewUnitTest(unittest.TestCase):
         mock_form.is_valid.return_value = False
         new_list(self.request)
         self.assertFalse(mock_form.save.called)
+
+
+class ShareListTest(TestCase):
+
+    def test_post_redirects_to_list_page(self):
+        list_ = List.objects.create()
+
+        response = self.client.post(
+            f'/lists/{list_.id}/share',
+        )
+
+        self.assertRedirects(response, f'/lists/{list_.id}/')

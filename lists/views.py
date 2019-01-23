@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-def home_page(request): 
+def home_page(request):
     return render(request, 'home.html', {'form': ItemForm()})
 
 
@@ -34,3 +34,8 @@ def new_list(request):
 def my_lists(request, email):
     owner = User.objects.get(email=email)
     return render(request, 'my_lists.html', {'owner': owner})
+
+
+def share_list(request, list_id):
+        list_ = List.objects.get(id=list_id)
+        return redirect(list_)
