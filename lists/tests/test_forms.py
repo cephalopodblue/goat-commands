@@ -3,10 +3,13 @@ from unittest.mock import patch, Mock
 from django.test import TestCase
 
 from lists.forms import (
-    DUPLICATE_ITEM_ERROR, EMPTY_ITEM_ERROR,
-    ExistingListItemForm, ItemForm, NewListForm
+    DUPLICATE_ITEM_ERROR, EMPTY_ITEM_ERROR, EMPTY_SHAREE_ERROR, NO_USER_ERROR,
+    DUPLICATE_USER_ERROR,
+    ExistingListItemForm, ItemForm, NewListForm, ShareWithForm
 )
 from lists.models import Item, List
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 class ItemFormTest(TestCase):
 
@@ -87,3 +90,52 @@ class NewListFormTest(unittest.TestCase):
         form.is_valid()
         response = form.save(owner=user)
         self.assertEqual(response, mock_List_create_new.return_value)
+
+
+class ShareWithFormTest(TestCase):
+
+    def test_form_renders_sharebox(self):
+        list_ = List.objects.create()
+        form = ShareWithForm(for_list=list_)
+        self.assertIn('name="sharee"', form.as_p())
+
+    def test_share_with_form_validation_for_blank_items(self):
+        list_ = List.objects.create()
+        form = ShareWithForm(for_list=list_, data={'sharee': ''})
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.errors['sharee'],
+            [EMPTY_SHAREE_ERROR],
+        )
+
+    def test_share_with_form_validation_user_does_not_exist(self):
+        list_ = List.objects.create()
+        form = ShareWithForm(for_list=list_, data={'sharee': 'man@b.net'})
+
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.errors['sharee'],
+            [NO_USER_ERROR],
+        )
+
+    def test_share_with_form_validation_duplicate_user(self):
+        list_ = List.objects.create()
+        user = User.objects.create(email="man@b.net")
+        list_.shared_with.add(user)
+        form = ShareWithForm(for_list=list_, data={'sharee': 'man@b.net'})
+
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.errors['sharee'],
+            [DUPLICATE_USER_ERROR],
+        )
+
+    def test_share_with_existing_user_form_save(self):
+        list_ = List.objects.create()
+        user = User.objects.create(email="man@b.net")
+
+        form = ShareWithForm(for_list=list_, data={'sharee': 'man@b.net'})
+        form.is_valid()
+        saved_list = form.save()
+        self.assertEqual(saved_list, list_)
+        self.assertEqual(saved_list.shared_with.first(), user)

@@ -7,7 +7,7 @@ from lists.models import Item, List
 
 
 class ItemModelTest(TestCase):
-    
+
     def test_default_text(self):
         item = Item()
         self.assertEqual(item.text, '')
@@ -89,3 +89,10 @@ class ListModelTest(TestCase):
         Item.objects.create(list=list_, text='first item')
         Item.objects.create(list=list_, text='second item')
         self.assertEqual(list_.name, 'first item')
+
+    def test_list_shared_with_add_existing_user(self):
+        list_ = List.objects.create()
+        user = User.objects.create(email="user@b.net")
+
+        list_.shared_with.add("user@b.net")
+        self.assertIn(user, list_.shared_with.all())

@@ -8,8 +8,9 @@ User = get_user_model()
 from lists.views import new_list
 from lists.models import Item, List
 from lists.forms import (
-    ItemForm, ExistingListItemForm,
-    EMPTY_ITEM_ERROR, DUPLICATE_ITEM_ERROR
+    ItemForm, ExistingListItemForm, ShareWithForm,
+    EMPTY_ITEM_ERROR, DUPLICATE_ITEM_ERROR, NO_USER_ERROR, EMPTY_SHAREE_ERROR,
+    DUPLICATE_USER_ERROR
 )
 
 import unittest
@@ -144,6 +145,15 @@ class ListViewTest(TestCase):
         self.assertTemplateUsed(response, 'list.html')
         self.assertEqual(Item.objects.all().count(), 1)
 
+    def test_share_list_passes_form_to_template(self):
+        list_ = List.objects.create()
+        response = self.client.get(f'/lists/{list_.id}/')
+        self.assertIsInstance(response.context['share_form'], ShareWithForm)
+
+    def test_share_list_placeholder(self):
+        list_ = List.objects.create()
+        response = self.client.get(f'/lists/{list_.id}/')
+        self.assertContains(response, 'placeholder="your-friend@example.com"')
 
 class MyListsTest(TestCase):
 
@@ -214,9 +224,52 @@ class ShareListTest(TestCase):
 
     def test_post_redirects_to_list_page(self):
         list_ = List.objects.create()
+        user = User.objects.create(email='test_man@example.org')
 
         response = self.client.post(
             f'/lists/{list_.id}/share',
+            data = {'sharee': 'test_man@example.org'}
         )
 
         self.assertRedirects(response, f'/lists/{list_.id}/')
+
+    def test_user_can_be_added_to_list_POST(self):
+        list_ = List.objects.create()
+        user = User.objects.create(email='test_man@example.org')
+
+        response = self.client.post(
+            f'/lists/{list_.id}/share',
+            data = {'sharee': 'test_man@example.org'}
+        )
+
+        self.assertRedirects(response, f'/lists/{list_.id}/')
+        self.assertIn(user, list_.shared_with.all())
+
+    def test_for_invalid_input_no_user_shows_error_on_page(self):
+        list_ = List.objects.create()
+
+        response = self.client.post(
+            f'/lists/{list_.id}/share',
+            data = {'sharee': 'test_man@example.org'}
+        )
+        self.assertContains(response, escape(NO_USER_ERROR))
+
+    def test_for_invalid_input_duplicate_user_shows_error_on_page(self):
+        list_ = List.objects.create()
+        user = User.objects.create(email='test_man@example.org')
+        list_.shared_with.add(user)
+
+        response = self.client.post(
+            f'/lists/{list_.id}/share',
+            data = {'sharee': 'test_man@example.org'}
+        )
+        self.assertContains(response, escape(DUPLICATE_USER_ERROR))
+
+    def test_for_invalid_input_no_input_shows_error_on_page(self):
+        list_ = List.objects.create()
+
+        response = self.client.post(
+            f'/lists/{list_.id}/share',
+            data = {'sharee': ''}
+        )
+        self.assertContains(response, escape(EMPTY_SHAREE_ERROR))

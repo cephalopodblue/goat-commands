@@ -1,6 +1,6 @@
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
-from lists.forms import ItemForm, ExistingListItemForm, NewListForm
+from lists.forms import ItemForm, ExistingListItemForm, NewListForm, ShareWithForm
 from lists.models import Item, List
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
@@ -14,13 +14,14 @@ def home_page(request):
 def view_list(request, list_id):
     list_ = List.objects.get(id=list_id)
     form = ExistingListItemForm(for_list=list_)
+    share_form = ShareWithForm(for_list=list_)
 
     if request.method == 'POST':
         form = ExistingListItemForm(for_list=list_, data=request.POST)
         if form.is_valid():
             form.save()
             return redirect(list_)
-    return render(request, 'list.html', {'list': list_, "form": form})
+    return render(request, 'list.html', {'list': list_, "form": form, "share_form": share_form})
 
 
 def new_list(request):
@@ -37,5 +38,11 @@ def my_lists(request, email):
 
 
 def share_list(request, list_id):
-        list_ = List.objects.get(id=list_id)
-        return redirect(list_)
+    list_ = List.objects.get(id=list_id)
+
+    if request.method == 'POST':
+        form = ShareWithForm(for_list=list_, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(list_)
+    return render(request, 'list.html', {'list': list_, "share_form": form})
