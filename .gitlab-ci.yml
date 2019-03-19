@@ -10,8 +10,6 @@ unit_tests:
     stage: unit_tests
     script:
         - ./virtualenv/bin/python manage.py test accounts lists
-    tags:
-        - unit_tests
 
 functional_tests:
     stage: functional_tests
