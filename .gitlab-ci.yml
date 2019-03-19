@@ -1,15 +1,21 @@
 before_script:
     - chmod +x ./testing-setup.sh
     - ./testing-setup.sh
+    
+stages:
+    - unit_tests
+    - functional_tests
 
 unit_tests:
+    stage: unit_tests
     script:
         - ./virtualenv/bin/python manage.py test accounts lists
     tags:
-        - goats
+        - goats, unit_tests
 
 functional_tests:
+    stage: functional_tests
     script:
         - xvfb-run ./virtualenv/bin/python manage.py test functional_tests
     tags:
-        - goats
+        - goats, functional_tests
